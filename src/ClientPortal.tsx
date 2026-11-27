@@ -1,3 +1,4 @@
+import { staffHome } from "./portalRoutes"
 import { apiRequest, type TrackingResult } from "./api"
 import serviceCounterPhoto from "./assets/daet-service-counter.png"
 import visitorQueuePhoto from "./assets/daet-visitor-queue.png"
@@ -477,19 +478,15 @@ function AgencyLogos() {
 
 export function LanguageMenu({ language, setLanguage }: { language: PublicLanguage; setLanguage: (language: PublicLanguage) => void }) {
   return (
-  <details className="border-t border-line pt-1">
-    <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between rounded-lg px-3 text-sm font-semibold text-primary-dark hover:bg-section focus-visible:outline-2 focus-visible:outline-primary [&::-webkit-details-marker]:hidden">
-      {language === "fil" ? "Palitan ang wika" : "Change language"}
-      <Icon name="chevron" className="size-4" />
-    </summary>
-    <div className="mx-2 mb-2 grid grid-cols-2 gap-1 rounded-lg bg-section p-1">
-      {(["en", "fil"] as const).map(option => (
-        <button key={option} type="button" lang={option} aria-pressed={language === option} onClick={() => setLanguage(option)} className={`min-h-10 rounded-md px-2 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-primary ${language === option ? "bg-primary text-white" : "text-primary-dark hover:bg-white"}`}>
-          {option === "en" ? "English" : "Filipino"}
-        </button>
-      ))}
-    </div>
-  </details>
+    <select
+      aria-label={language === "fil" ? "Palitan ang wika" : "Change language"}
+      value={language}
+      onChange={event => setLanguage(event.target.value as PublicLanguage)}
+      className="min-h-10 shrink-0 cursor-pointer rounded-lg border border-line bg-section px-2 text-xs font-semibold text-primary-dark hover:bg-white focus-visible:outline-2 focus-visible:outline-primary sm:px-3 sm:text-sm"
+    >
+      <option value="en" lang="en">English</option>
+      <option value="fil" lang="fil">Filipino</option>
+    </select>
   )
 }
 
@@ -523,7 +520,7 @@ function Header({
     <>
       <AgencyLogos />
       <span className="min-w-0">
-        <strong className="block text-xl leading-none font-bold tracking-[-0.04em] text-primary-dark sm:text-2xl">CIVILyst</strong>
+        <strong className="block truncate text-base leading-tight font-bold tracking-[-0.04em] text-primary-dark sm:text-2xl">CIVILyst</strong>
         <span className="mt-1.5 block text-xs leading-snug font-medium text-muted">
           Municipal Civil Registrar’s Office <span className="hidden sm:inline">· Daet</span>
         </span>
@@ -539,10 +536,12 @@ function Header({
     }} className="sticky top-0 z-40 mx-auto w-full max-w-7xl px-3 pt-2 sm:px-8 sm:pt-3">
       <div className="civily-header-edge">
         <div className="overflow-hidden rounded-[15px] bg-white">
-          <div className="flex items-center justify-between gap-4 px-3.5 py-3 sm:px-5">
+          <div className="flex items-center justify-between gap-2 px-3.5 py-3 sm:gap-4 sm:px-5">
             {isTimeline ? (
               <>
-                <div className="flex min-w-0 items-center gap-3">{branding}</div>
+                <div className="flex min-w-0 items-center gap-2 sm:gap-3">{branding}</div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <LanguageMenu language={language} setLanguage={setLanguage} />
                   <Button
                     onClick={() => setOpen(!open)}
                     expanded={open}
@@ -551,10 +550,11 @@ function Header({
                   >
                     <Icon name={open ? "x" : "menu"} />
                   </Button>
+                </div>
               </>
             ) : (
               <>
-                <Button onClick={() => go("home")} className="min-w-0 justify-start gap-3 text-left">
+                <Button onClick={() => go("home")} className="min-w-0 justify-start gap-2 text-left sm:gap-3">
                   {branding}
                 </Button>
                 <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
@@ -570,6 +570,7 @@ function Header({
                       </Button>
                     ))}
                   </nav>
+                  <LanguageMenu language={language} setLanguage={setLanguage} />
                   <Button
                     onClick={() => setOpen(!open)}
                     expanded={open}
@@ -601,23 +602,13 @@ function Header({
           <Button onClick={() => go("help")} current={page === "help"} className="min-h-11 justify-start px-3 text-sm text-primary-dark hover:bg-section">
             <Icon name="help" className="size-4" /> {t("Help")}
           </Button>
-          {import.meta.env.BASE_URL === "/CIVILyst/" ? (
-            <details className="rounded-lg text-primary-dark hover:bg-section">
-              <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-lg px-3 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-primary">
-                <Icon name="shield" className="size-4" /> {t("Staff Services")}
-              </summary>
-              <p className="px-3 pb-3 text-sm text-muted">
-                {language === "fil" ? "Sa lokal na bersyon ng CIVILyst lamang maaaring mag-sign in ang kawani." : "Staff sign-in is available in the local CIVILyst app."}
-              </p>
-            </details>
-          ) : <a href="/portal" onClick={event => {
+          <a href={staffHome} onClick={event => {
             if (!isTimeline || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
             event.preventDefault()
             openStaffServices()
           }} className="flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-primary-dark hover:bg-section focus-visible:outline-2 focus-visible:outline-primary">
             <Icon name="shield" className="size-4" /> {t("Staff Services")}
-          </a>}
-          <LanguageMenu language={language} setLanguage={setLanguage} />
+          </a>
         </div>
       )}
 
@@ -2045,7 +2036,7 @@ export default function ClientPortal() {
       endTrackingDialog.current?.showModal()
       return
     }
-    if (next === "staff") window.location.assign("/portal")
+    if (next === "staff") window.location.assign(staffHome)
     else navigate(next)
   }
 
@@ -2054,7 +2045,7 @@ export default function ClientPortal() {
     const next = pendingDestination.current
     if (next === "staff") {
       setResult(null)
-      window.location.assign("/portal")
+      window.location.assign(staffHome)
     } else navigate(next)
   }
 

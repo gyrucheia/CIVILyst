@@ -1,3 +1,4 @@
+import { pagesPreview, publicHome, staffHome, staffHelp } from "./portalRoutes"
 import { useEffect, useState, type FormEvent } from "react"
 import { apiRequest } from "./api"
 import { AuditLog, Dashboard, InternalWorkspaceLayout, RecordsWorkspace, StatusMonitoring, defaultRecordFilters, type View } from "./InternalApp"
@@ -7,6 +8,7 @@ import daetSeal from "./assets/daet-seal.png"
 import psaLogo from "./assets/psa-logo.png"
 import maogmangDaet from "./assets/maogmang-daet.png"
 import officePhoto from "./assets/mcr-daet-office.png"
+import filingBoxesPhoto from "./assets/mcr-petition-file-boxes.png"
 
 type Staff = { full_name: string; email: string; role: "personnel" | "super_admin" }
 type Session = { staff: Staff | null }
@@ -99,9 +101,21 @@ function WorkspaceLanding({ children, fil }: { children: React.ReactNode; fil: b
             <p className="mt-1 text-sm leading-relaxed text-muted">{fil ? "Gumagamit ang awtorisadong kawani ng sariling MCR account." : "Authorized staff sign in with their assigned MCR account to work on petition records."}</p>
           </article>
         </div>
+        <section aria-labelledby="staff-filing-title" className="mt-8 grid gap-5 border-t border-line bg-white pt-6 sm:gap-7 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-center lg:pt-8">
+          <div className="lg:pr-6">
+            <h3 id="staff-filing-title" className="civily-layered-label w-fit bg-primary px-3 py-1.5 text-xl font-bold tracking-tight text-white sm:text-2xl">{fil ? "Mga kahon ng dokumento ng petisyon" : "Physical petition files"}</h3>
+            <p className="mt-3 max-w-[46ch] text-sm leading-relaxed text-ink sm:text-base">{fil ? "Iniimbak ng MCR Daet ang mga papel na dokumento ng petisyon sa mga kahong may label. Itinatala sa CIVILyst ang label upang madaling mahanap ng kawani ang tamang kahon." : "MCR Daet stores paper petition documents in labeled filing boxes. CIVILyst records the box label so staff can locate the paper file."}</p>
+          </div>
+          <figure className="min-w-0">
+            <div className="aspect-[16/10] overflow-hidden rounded-xl border border-[#fff3df] bg-white p-1 shadow-panel sm:p-1.5">
+              <img src={filingBoxesPhoto} alt={fil ? "Mga pulang kahon na may label ng taon at saklaw ng CCE number." : "Red filing boxes labeled by year and CCE number range."} width={1536} height={2048} loading="lazy" decoding="async" className="h-full w-full rounded-lg object-cover object-[center_58%]" />
+            </div>
+            <figcaption className="mt-2 border-l-2 border-[#c8a27d] py-1 pl-3 text-sm leading-snug text-muted">{fil ? "Mga kahon ng petisyon sa MCR Daet" : "Petition filing boxes at MCR Daet"}</figcaption>
+          </figure>
+        </section>
       </div>
     </section>
-    <Footer fromStaff navigate={page => window.location.assign(`/?view=${page}`)} />
+    <Footer fromStaff navigate={page => window.location.assign(`${publicHome}?view=${page}`)} />
   </main>
 }
 
@@ -121,9 +135,9 @@ function WorkspaceHelp({ fil }: { fil: boolean }) {
         <PageIntro title={fil ? "Tulong sa workspace" : "Workspace help"} description={fil ? "Mga sagot tungkol sa account, pag-sign in, at pagsubaybay sa petisyon." : "Find answers about staff accounts, sign-in, and petition tracking."} />
         <div className="grid gap-2.5 sm:grid-cols-3">
           {([
-            ["chevron", fil ? "Bumalik sa workspace" : "Back to workspace", "/portal"],
+            ["chevron", fil ? "Bumalik sa workspace" : "Back to workspace", staffHome],
             ["shield", fil ? "Tulong sa account" : "Account support", "#workspace-account-support"],
-            ["timeline", "Petition Tracking", "/?view=track"],
+            ["timeline", "Petition Tracking", publicHome + "?view=track"],
           ] as const).map(([icon, label, href]) => <a key={href} href={href} className="flex min-w-0 items-center gap-3 rounded-lg border border-line bg-[#fffcf7] p-3.5 text-sm font-semibold text-primary-dark shadow-panel hover:bg-section focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
             <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary text-white"><Icon name={icon} className={icon === "chevron" ? "size-5 rotate-180" : "size-5"} /></span>
             {label}
@@ -139,7 +153,7 @@ function WorkspaceHelp({ fil }: { fil: boolean }) {
         </aside>
       </div>
     </main>
-    <Footer fromStaff navigate={page => window.location.assign(`/?view=${page}`)} />
+    <Footer fromStaff navigate={page => window.location.assign(`${publicHome}?view=${page}`)} />
   </>
 }
 
@@ -235,7 +249,10 @@ function Workspace({ staff, refresh }: { staff: Staff; refresh: () => Promise<vo
           <Field name="owner first name" /><Field name="owner last name" />
           <Field name="owner date of birth" type="date" /><Field name="relationship" label="Petitioner’s relationship to the owner" />
           <label className="grid gap-1.5 text-sm font-semibold">Petition type<select name="type" required className={control}><option value="">Choose a petition type</option>{Object.entries(types).map(([code, [label]]) => <option key={code} value={code}>{label}</option>)}</select></label>
-          <Field name="box" label="Physical box number" />
+          <div className="space-y-2">
+            <Field name="box" label="Physical box label" />
+            <p className="text-xs text-muted">Enter the year and label printed on the box, such as 2026 · CCE-0241-0260.</p>
+          </div>
           <Field name="contact number" label="Petitioner’s mobile number for SMS (optional)" type="tel" optional />
         </div>
       </DataForm>
@@ -303,7 +320,7 @@ function Workspace({ staff, refresh }: { staff: Staff; refresh: () => Promise<vo
 
 export default function StaffPortal() {
   const surfaceRef = useScrollLighting()
-  const helpPage = window.location.pathname.replace(/\/$/, "") === "/portal/help"
+  const helpPage = pagesPreview ? new URLSearchParams(window.location.search).get("view") === "staff-help" : window.location.pathname.replace(/\/$/, "") === "/portal/help"
   const [language, setLanguage] = useState<"en" | "fil">(() => localStorage.getItem("civily-public-language") === "fil" ? "fil" : "en")
   const [menuOpen, setMenuOpen] = useState(false)
   const fil = language === "fil"
@@ -315,30 +332,33 @@ export default function StaffPortal() {
     setError("")
   }
   function checkSession() { refresh().catch(reason => setError(reason.message)) }
-  useEffect(() => { if (!helpPage) checkSession() }, [helpPage])
+  useEffect(() => { if (!pagesPreview && !helpPage) checkSession() }, [helpPage])
   if (!helpPage && session?.staff) return <Workspace key={session.staff.email} staff={session.staff} refresh={refresh} />
   return <div ref={surfaceRef} className="civily-page civily-admin-background flex min-h-screen flex-col px-4 py-5 sm:px-8 sm:py-8">
     <header className="civily-header-edge relative z-40 mx-auto mb-6 w-full max-w-7xl self-stretch sm:mb-8">
       <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-1 rounded-[15px] bg-white px-4 py-3 sm:px-6 sm:py-4">
         <WorkspaceBrand />
-        <div className="relative z-20" onKeyDown={event => {
+        <div className="relative z-20 flex items-center gap-2" onKeyDown={event => {
           if (event.key === "Escape" && menuOpen) {
             setMenuOpen(false)
             event.currentTarget.querySelector("button")?.focus()
           }
         }}>
+          <LanguageMenu language={language} setLanguage={setLanguage} />
           <button type="button" aria-label={fil ? "Menu ng workspace" : "Workspace menu"} aria-expanded={menuOpen} onClick={() => setMenuOpen(open => !open)} className="grid size-10 place-items-center rounded-lg border border-line bg-section text-primary hover:bg-white focus-visible:outline-2 focus-visible:outline-primary">
             <span aria-hidden="true" className="grid gap-[3px]"><span className="h-0.5 w-4 rounded bg-current" /><span className="h-0.5 w-4 rounded bg-current" /><span className="h-0.5 w-4 rounded bg-current" /></span>
           </button>
           {menuOpen && <nav lang={language} aria-label={fil ? "Mga opsiyon" : "Workspace options"} className="absolute right-0 top-full mt-2 grid w-64 gap-1 rounded-xl border border-line bg-white p-1.5 shadow-lg">
-            <a href="/portal/help" onClick={() => setMenuOpen(false)} className="flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-primary-dark hover:bg-section"><Icon name="help" className="size-4" /> {fil ? "Tulong sa workspace" : "Workspace help"}</a>
-            <a href="/?view=track" lang="en" className="flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-primary-dark hover:bg-section"><Icon name="timeline" className="size-4" /> Petition Tracking</a>
-            <LanguageMenu language={language} setLanguage={setLanguage} />
+            <a href={staffHelp} onClick={() => setMenuOpen(false)} className="flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-primary-dark hover:bg-section"><Icon name="help" className="size-4" /> {fil ? "Tulong sa workspace" : "Workspace help"}</a>
+            <a href={publicHome + "?view=track"} lang="en" className="flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-primary-dark hover:bg-section"><Icon name="timeline" className="size-4" /> Petition Tracking</a>
           </nav>}
         </div>
       </div>
     </header>
-    {helpPage ? <WorkspaceHelp fil={fil} /> : <WorkspaceLanding fil={fil}>{session ? <SignIn refresh={refresh} fil={fil} /> : error
+    {helpPage ? <WorkspaceHelp fil={fil} /> : <WorkspaceLanding fil={fil}>{pagesPreview ? <>
+        <h2 className="text-2xl font-bold text-primary-dark">{fil ? "Mag-sign in sa CIVILyst" : "Sign in to CIVILyst"}</h2>
+        <p className="mt-3 text-sm leading-relaxed text-muted">{fil ? "Preview ito ng staff workspace. Mag-sign in sa lokal na app upang ma-access ang mga tala ng petisyon." : "This is a preview of the staff workspace. Sign in through the local app to access petition records."}</p>
+      </> : session ? <SignIn refresh={refresh} fil={fil} /> : error
         ? <div><p role="alert">{error}</p><button className={action + " mt-3"} onClick={checkSession}>Retry connection</button></div>
         : <div role="status" className="flex items-center gap-3 font-semibold text-primary-dark">
             <span aria-hidden="true" className="size-5 rounded-full border-2 border-line border-t-primary motion-safe:animate-spin" />
