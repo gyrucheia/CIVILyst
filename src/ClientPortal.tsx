@@ -601,13 +601,22 @@ function Header({
           <Button onClick={() => go("help")} current={page === "help"} className="min-h-11 justify-start px-3 text-sm text-primary-dark hover:bg-section">
             <Icon name="help" className="size-4" /> {t("Help")}
           </Button>
-          <a href="/portal" onClick={event => {
+          {import.meta.env.BASE_URL === "/CIVILyst/" ? (
+            <details className="rounded-lg text-primary-dark hover:bg-section">
+              <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-lg px-3 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-primary">
+                <Icon name="shield" className="size-4" /> {t("Staff Services")}
+              </summary>
+              <p className="px-3 pb-3 text-sm text-muted">
+                {language === "fil" ? "Sa lokal na bersyon ng CIVILyst lamang maaaring mag-sign in ang kawani." : "Staff sign-in is available in the local CIVILyst app."}
+              </p>
+            </details>
+          ) : <a href="/portal" onClick={event => {
             if (!isTimeline || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
             event.preventDefault()
             openStaffServices()
           }} className="flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-primary-dark hover:bg-section focus-visible:outline-2 focus-visible:outline-primary">
             <Icon name="shield" className="size-4" /> {t("Staff Services")}
-          </a>
+          </a>}
           <LanguageMenu language={language} setLanguage={setLanguage} />
         </div>
       )}
