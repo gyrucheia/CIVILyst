@@ -1,4 +1,4 @@
-import { staffHome } from "./portalRoutes"
+import { pagesPreview, staffHome } from "./portalRoutes"
 import { apiRequest, type TrackingResult } from "./api"
 import serviceCounterPhoto from "./assets/daet-service-counter.png"
 import visitorQueuePhoto from "./assets/daet-visitor-queue.png"
@@ -658,8 +658,18 @@ function Tracker({
     setError("")
     setBusy(true)
     try {
-      const result = await apiRequest<TrackingResult>("track", { reference })
-      onTrack(result)
+      if (pagesPreview) {
+        if (reference.trim().toUpperCase() !== "CCE-000128-2026") throw new Error("Use the sample reference CCE-000128-2026 for this preview.")
+        onTrack({
+          petition: { transaction_ref_no: "CCE-000128-2026", filing_date: "2026-09-04" },
+          milestones: [
+            { stage_code: "Petition Accepted", effective_on: "2026-09-04", public_remark: null, changes_current_stage: false },
+            { stage_code: "Posting Period", effective_on: "2026-09-07", public_remark: "Sample milestone for the CIVILyst preview.", changes_current_stage: true },
+          ],
+        })
+      } else {
+        onTrack(await apiRequest<TrackingResult>("track", { reference }))
+      }
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Unable to check this petition.")
     } finally {
@@ -677,6 +687,7 @@ function Tracker({
         </Heading>
       </div>
       <form onSubmit={submit} className="space-y-4">
+        {pagesPreview && <p className="text-sm text-muted">Sample data · <button type="button" className="font-semibold text-primary underline" onClick={() => { setReference("CCE-000128-2026"); setError("") }}>Use sample reference</button></p>}
         <label className="grid gap-2 text-sm font-semibold text-ink">
           {t("Transaction reference number")}
           <span className="flex h-12 min-w-0 items-center gap-2 rounded-lg border border-line bg-white px-3.5 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15">

@@ -1,7 +1,7 @@
 import { pagesPreview, publicHome, staffHome, staffHelp } from "./portalRoutes"
 import { useEffect, useState, type FormEvent } from "react"
 import { apiRequest } from "./api"
-import { AuditLog, Dashboard, InternalWorkspaceLayout, RecordsWorkspace, StatusMonitoring, defaultRecordFilters, type View } from "./InternalApp"
+import InternalApp, { AuditLog, Dashboard, InternalWorkspaceLayout, RecordsWorkspace, StatusMonitoring, defaultRecordFilters, type View } from "./InternalApp"
 import Collections from "./Collections"
 import { Footer, HelpQuestions, Icon, LanguageMenu, PageIntro, useScrollLighting } from "./ClientPortal"
 import daetSeal from "./assets/daet-seal.png"
@@ -323,6 +323,7 @@ export default function StaffPortal() {
   const helpPage = pagesPreview ? new URLSearchParams(window.location.search).get("view") === "staff-help" : window.location.pathname.replace(/\/$/, "") === "/portal/help"
   const [language, setLanguage] = useState<"en" | "fil">(() => localStorage.getItem("civily-public-language") === "fil" ? "fil" : "en")
   const [menuOpen, setMenuOpen] = useState(false)
+  const [demoRole, setDemoRole] = useState<"admin" | "staff">()
   const fil = language === "fil"
   useEffect(() => { localStorage.setItem("civily-public-language", language) }, [language])
   const [session, setSession] = useState<Session>()
@@ -333,6 +334,7 @@ export default function StaffPortal() {
   }
   function checkSession() { refresh().catch(reason => setError(reason.message)) }
   useEffect(() => { if (!pagesPreview && !helpPage) checkSession() }, [helpPage])
+  if (pagesPreview && demoRole) return <InternalApp previewRole={demoRole} onExitPreview={() => setDemoRole(undefined)} />
   if (!helpPage && session?.staff) return <Workspace key={session.staff.email} staff={session.staff} refresh={refresh} />
   return <div ref={surfaceRef} className="civily-page civily-admin-background flex min-h-screen flex-col px-4 py-5 sm:px-8 sm:py-8">
     <header className="civily-header-edge relative z-40 mx-auto mb-6 w-full max-w-7xl self-stretch sm:mb-8">
@@ -356,8 +358,12 @@ export default function StaffPortal() {
       </div>
     </header>
     {helpPage ? <WorkspaceHelp fil={fil} /> : <WorkspaceLanding fil={fil}>{pagesPreview ? <>
-        <h2 className="text-2xl font-bold text-primary-dark">{fil ? "Mag-sign in sa CIVILyst" : "Sign in to CIVILyst"}</h2>
-        <p className="mt-3 text-sm leading-relaxed text-muted">{fil ? "Preview ito ng staff workspace. Mag-sign in sa lokal na app upang ma-access ang mga tala ng petisyon." : "This is a preview of the staff workspace. Sign in through the local app to access petition records."}</p>
+        <h2 className="text-2xl font-bold text-primary-dark">{fil ? "Subukan ang workspace" : "Explore the staff workspace"}</h2>
+        <p className="mt-3 text-sm leading-relaxed text-muted">{fil ? "Halimbawang datos lamang. Sa browser na ito naiimbak ang mga pagbabago." : "Sample data only. Changes are saved in this browser."}</p>
+        <div className="mt-4 grid gap-2">
+          <button type="button" className={action} onClick={() => setDemoRole("staff")}>{fil ? "Subukan bilang Personnel" : "Try as Personnel"}</button>
+          <button type="button" className={action} onClick={() => setDemoRole("admin")}>{fil ? "Subukan bilang Super Admin" : "Try as Super Admin"}</button>
+        </div>
       </> : session ? <SignIn refresh={refresh} fil={fil} /> : error
         ? <div><p role="alert">{error}</p><button className={action + " mt-3"} onClick={checkSession}>Retry connection</button></div>
         : <div role="status" className="flex items-center gap-3 font-semibold text-primary-dark">

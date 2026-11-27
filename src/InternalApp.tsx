@@ -4815,7 +4815,8 @@ export const defaultRecordFilters: RecordFilterState = {
   sort: "Recently Updated",
 }
 
-export default function InternalApp() {
+export default function InternalApp({ previewRole, onExitPreview }: { previewRole?: Role; onExitPreview?: () => void }) {
+  const [previewReference, setPreviewReference] = useState("")
   const [email, setEmail] = useState("")
   const [workspace, setWorkspace] = useState<DemoWorkspace>(() => {
     try {
@@ -4827,7 +4828,9 @@ export default function InternalApp() {
     return { records: initialDemoRecords, accounts: initialDemoAccounts, activity: [], nextNumber: 129 }
   })
   const { accounts, records: demoRecords, activity } = workspace
-  const actor = accounts.find(account => account[1] === email && account[3] === "Active")
+  const actor = previewRole
+    ? [previewRole === "admin" ? "Sample Super Admin" : "Sample Personnel", previewRole + "@example.test", previewRole === "admin" ? "Super Admin" : "Personnel"]
+    : accounts.find(account => account[1] === email && account[3] === "Active")
   const role: Role | null = actor ? actor[2] === "Super Admin" ? "admin" : "staff" : null
   useEffect(() => {
     try {
@@ -4840,7 +4843,7 @@ export default function InternalApp() {
     const now = new Date()
     return [activityDate.format(now), user[0], user[2], module, action, reference, detail, "Successful", manilaDate.format(now), (crypto.randomUUID?.() ?? String(now.getTime()) + "-" + Math.random().toString(36).slice(2)), user[1]]
   }
-  const [view, setView] = useState<View>("dashboard")
+  const [view, setView] = useState<View>(previewRole === "staff" ? "records" : "dashboard")
   const [returnView, setReturnView] = useState<View>("dashboard")
   const [editingStatus, setEditingStatus] = useState(false)
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null)
@@ -4899,7 +4902,13 @@ export default function InternalApp() {
   }
 
   let content: ReactNode
-  if (view === "record")
+  if (previewRole === "staff")
+    content = <section className="rounded-xl border border-line bg-white p-5">
+      <h1 className="text-2xl font-bold text-primary-dark">Petition Records</h1>
+      {previewReference && <p role="status" className="my-3 text-sm text-primary">Sample petition saved · {previewReference}</p>}
+      <NewPetitionForm onCancel={() => onExitPreview?.()} onSave={(record, date) => setPreviewReference(addRecord(record, date))} />
+    </section>
+  else if (view === "record")
     content = (
       selectedRecord ? (
         <section className="civily-admin-panel rounded-xl border border-line bg-white p-5">
@@ -5002,12 +5011,13 @@ export default function InternalApp() {
 
   return (
     <DemoStatusContext.Provider value={(reference, stage) => editRecord(reference, 4, stage)}>
-      <InternalWorkspaceLayout role={role} view={view} userName={actor[0]} onNavigate={setView} onSignOut={() => {
+      <InternalWorkspaceLayout live={previewRole === "staff"} role={role} view={view} userName={actor[0]} onNavigate={setView} onSignOut={() => {
+        if (onExitPreview) { onExitPreview(); return }
         const entry = log(actor, "Staff Portal", "Sign Out", actor[1], "Closed the demo workspace.")
         setWorkspace(current => ({ ...current, activity: [entry, ...current.activity] }))
         setEmail("")
         setEditingStatus(false)
-      }}>{content}</InternalWorkspaceLayout>
+      }}>{previewRole && <p className="mb-4 rounded-lg border border-line bg-section px-4 py-2 text-sm font-semibold text-primary-dark">Sample workspace · Changes stay in this browser</p>}{content}</InternalWorkspaceLayout>
     </DemoStatusContext.Provider>
   )
 }
