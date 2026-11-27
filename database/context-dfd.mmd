@@ -1,0 +1,15 @@
+flowchart LR
+  client[Petitioner]
+  staff[Personnel]
+  admin[Super Admin]
+  gateway[SMS Gateway]
+  system(("0 CIVILyst"))
+  client -->|Requirements inquiry or tracking reference and owner DOB| system
+  system -->|Public guidance or verified status| client
+  staff -->|Sign-in and accepted petition details| system
+  system -->|Sign-in result and tracking stub| staff
+  admin -->|Sign-in, intake, searches, milestone updates, account changes and audit queries| system
+  system -->|Tracking stub, records, update results and audit history| admin
+  system -->|Recipient and reference notice| gateway
+  gateway -->|Submission result and available delivery status| system
+  gateway -.->|Reference notice| client

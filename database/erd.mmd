@@ -1,0 +1,101 @@
+erDiagram
+  PETITIONERS ||--o{ PETITIONS : files
+  DOCUMENT_OWNERS ||--o{ PETITIONS : is_subject_of
+  PETITION_TYPES ||--o{ PETITIONS : classifies
+  STAFF_ACCOUNTS ||--o{ PETITIONS : encodes
+  PETITIONS ||--|{ PETITION_MILESTONES : has
+  STAFF_ACCOUNTS ||--o{ PETITION_MILESTONES : records
+  STAFF_ACCOUNTS ||--o{ AUDIT_EVENTS : acts
+  STAFF_ACCOUNTS o|--o{ AUDIT_EVENTS : is_target_of
+  PETITIONS o|--o{ AUDIT_EVENTS : is_subject_of
+  PETITIONS ||--o{ SMS_NOTIFICATIONS : generates
+  PETITION_MILESTONES o|--o| SMS_NOTIFICATIONS : triggers
+
+  PETITIONERS {
+    bigint petitioner_id PK
+    varchar first_name
+    varchar middle_name
+    varchar last_name
+    varchar contact_number
+    varchar address
+  }
+
+  DOCUMENT_OWNERS {
+    bigint document_owner_id PK
+    varchar first_name
+    varchar middle_name
+    varchar last_name
+    date date_of_birth
+  }
+
+  PETITION_TYPES {
+    smallint petition_type_id PK
+    varchar type_code UK
+    varchar type_name
+    varchar legal_basis
+    boolean is_active
+  }
+
+  STAFF_ACCOUNTS {
+    bigint staff_id PK
+    varchar full_name
+    varchar email UK
+    varchar password_hash
+    enum role
+    boolean is_active
+    timestamp created_at
+  }
+
+  PETITIONS {
+    bigint petition_id PK
+    varchar transaction_ref_no UK
+    varchar cce_number
+    bigint petitioner_id FK
+    bigint document_owner_id FK
+    varchar relationship_to_owner
+    smallint petition_type_id FK
+    varchar physical_box_number
+    varchar physical_location_note
+    date filing_date
+    bigint created_by FK
+    timestamp created_at
+    timestamp updated_at
+  }
+
+  PETITION_MILESTONES {
+    bigint milestone_id PK
+    bigint petition_id FK
+    varchar stage_code
+    varchar stage_status
+    varchar outcome_code
+    date effective_on
+    boolean changes_current_stage
+    text public_remark
+    text internal_note
+    bigint recorded_by FK
+    timestamp recorded_at
+  }
+
+  AUDIT_EVENTS {
+    bigint audit_event_id PK
+    bigint actor_staff_id FK
+    bigint petition_id FK
+    bigint target_staff_id FK
+    varchar action
+    json change_details
+    timestamp recorded_at
+  }
+
+  SMS_NOTIFICATIONS {
+    bigint sms_id PK
+    bigint milestone_id FK, UK
+    varchar message_body
+    bigint petition_id FK
+    varchar recipient_mobile
+    varchar provider_code
+    varchar provider_message_id
+    varchar delivery_status
+    timestamp created_at
+    timestamp sent_at
+    timestamp status_updated_at
+  }

@@ -1,0 +1,10 @@
+{
+  "description": "Enables clients to track petition statuses publicly while providing staff and admins secure dashboards for managing petitions, roles, and system settings.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

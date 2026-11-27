@@ -1,0 +1,47 @@
+flowchart LR
+  client[Petitioner]
+  staff[Personnel]
+  admin[Super Admin]
+  gateway[SMS Gateway]
+  guidance(("1 Public service guidance"))
+  intake(("2 Encode accepted petition"))
+  update(("3 Record milestones"))
+  lookup(("4 Verify tracking or search records"))
+  sms(("5 Dispatch reference notice"))
+  accounts(("6 Authenticate and manage accounts"))
+  audit(("7 Record and review audit events"))
+  parties[(Petitioners and document owners)]
+  types[(Petition types)]
+  petitions[(Petitions)]
+  milestones[(Petition milestones)]
+  staffDB[(Staff accounts)]
+  log[(Audit events)]
+  smsDB[(SMS notifications)]
+  client -->|Requirements inquiry| guidance -->|Checklists and standard fees| client
+  staff -->|Sign-in| accounts -->|Sign-in result| staff
+  admin -->|Sign-in and account changes| accounts -->|Sign-in and account results| admin
+  staffDB -->|Account and permissions| accounts -->|Account updates| staffDB
+  staff -->|Accepted petition details| intake -->|Tracking stub| staff
+  admin -->|Accepted petition details| intake -->|Tracking stub| admin
+  types -->|Petition type| intake
+  intake -->|Party records| parties
+  intake -->|CCE number, reference and box location| petitions
+  intake -->|Initial acceptance milestone| milestones
+  intake -->|Reference and mobile number| sms
+  admin -->|Milestone entry| update -->|Update result| admin
+  petitions -->|Petition details| update
+  update -->|Status event| milestones
+  update -->|New current stage and recipient| sms
+  client -->|Reference and owner DOB| lookup -->|Verified public timeline| client
+  admin -->|Record search or counter inquiry| lookup -->|Records and box location| admin
+  parties -->|Owner DOB or party names| lookup
+  petitions -->|Reference and authorized case details| lookup
+  milestones -->|Milestone history| lookup
+  sms -->|Recipient and reference notice| gateway -->|Submission result and available delivery status| sms
+  gateway -.->|Reference notice| client
+  sms -->|Transmission and delivery status| smsDB
+  intake -->|Encoder and new petition| audit
+  update -->|Actor and status change| audit
+  accounts -->|Actor and account change| audit
+  admin -->|Audit query| audit -->|Audit history| admin
+  log -->|Recorded events| audit -->|New audit entry| log
